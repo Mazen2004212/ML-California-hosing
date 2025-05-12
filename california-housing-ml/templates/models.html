@@ -1,0 +1,44 @@
+<!-- 📊 JS Script for Chart -->
+<script>
+    const modelResults = {{ results | tojson | safe }};
+    const labels = Object.keys(modelResults).map(name => name.toUpperCase());
+    const mseData = Object.values(modelResults).map(r => r.mse);
+    const r2Data = Object.values(modelResults).map(r => r.r2);
+    
+    new Chart(document.getElementById("comparisonChart"), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: 'MSE',
+            data: mseData,
+            backgroundColor: 'rgba(255, 99, 132, 0.6)'
+          },
+          {
+            label: 'R² Score',
+            data: r2Data,
+            backgroundColor: 'rgba(54, 162, 235, 0.6)'
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: { color: "#fff" }
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { color: "#ccc" }
+          },
+          x: {
+            ticks: { color: "#ccc" }
+          }
+        }
+      }
+    });
+    </script>
+    

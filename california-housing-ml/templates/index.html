@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <title>🏡 California Price Predictor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+  <div class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h3>🏡 House Price Predictor</h3>
+      <a href="/charts" class="btn btn-outline-info btn-sm">📊 Charts</a>
+    </div>
+
+    <div class="card shadow-sm p-4">
+      <form id="predictForm" class="row g-3">
+        {% for field, value in default_values.items() %}
+        {% if field != 'model_choice' %}
+        <div class="col-md-6">
+          <label class="form-label">{{ field }}</label>
+          <input type="number" name="{{ field }}" class="form-control" step="any" required value="{{ value }}">
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <!-- 🧠 اختيار الموديل -->
+        <div class="col-md-6">
+          <label class="form-label">Model Choice</label>
+          <select class="form-select" name="model_choice" required>
+            <option value="linear" {% if default_values.model_choice == "linear" %}selected{% endif %}>Linear Regression</option>
+            <option value="knn" {% if default_values.model_choice == "knn" %}selected{% endif %}>KNN</option>
+            <option value="xgboost" {% if default_values.model_choice == "xgboost" %}selected{% endif %}>XGBoost</option>
+          </select>
+        </div>
+
+        <div class="col-md-12 d-grid">
+          <button type="submit" class="btn btn-success">🔮 Predict</button>
+        </div>
+      </form>
+
+      <div id="result" class="alert alert-info mt-4 d-none"></div>
+
+      <div class="mt-3 text-end">
+        <a href="/download-log" class="btn btn-outline-light btn-sm">📥 Download Predictions CSV</a>
+      </div>
+    </div>
+  </div>
+
+<script>
+document.getElementById("predictForm").addEventListener("submit", async function (e) {
+  e.preventDefault();
+  const form = e.target;
+  const data = Object.fromEntries(new FormData(form).entries());
+  for (let key in data) {
+    if (!isNaN(data[key])) data[key] = parseFloat(data[key]);
+  }
+
+  const res = await fetch("/predict", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  });
+
+  const result = await res.json();
+  const box = document.getElementById("result");
+
+  if (result.predicted_price) {
+    box.textContent = `🏷️ Estimated Price: $${result.predicted_price}`;
+    box.classList.remove("d-none", "alert-danger");
+    box.classList.add("alert-info");
+  } else {
+    box.textContent = `❌ Error: ${result.error}`;
+    box.classList.remove("d-none", "alert-info");
+    box.classList.add("alert-danger");
+  }
+});
+</script>
+</body>
+</html>
